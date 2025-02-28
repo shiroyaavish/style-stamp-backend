@@ -15,7 +15,7 @@ async function bootstrap() {
     'New Style Stamp API',
   );
   const VERSION = configService.get<string>('VERSION', '1.0.0');
-  const PORT = configService.get<number>('PORT') || 3000;
+  const PORT = configService.get<number>('PORT') || 8080;
 
   // Create Swagger document
   const Swagger = new DocumentBuilder()
