@@ -7,7 +7,13 @@ function customTimestamp(): number {
   return new Date().getTime();
 }
 
-@Schema()
+@Schema({
+  timestamps: {
+    currentTime: () => {
+      return Date.now();
+    },
+  },
+})
 export class User {
   @Prop({ auto: true })
   _id: mongoose.Schema.Types.ObjectId;
@@ -48,10 +54,10 @@ export class User {
   @Prop()
   islogin: boolean;
 
-  @Prop({ default: customTimestamp })
+  @Prop()
   createdAt: number;
 
-  @Prop({ default: customTimestamp })
+  @Prop()
   updatedAt: number;
 }
 

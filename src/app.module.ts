@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from 'config/configuration';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
+import { InquiriesModule } from './inquiries/inquiries.module';
 import LogsMiddleware from './middlewares/logs.middleware';
 import mongoose from 'mongoose';
 
@@ -26,7 +27,8 @@ mongoose.set('debug',true)
       inject:[ConfigService]
     }),
     AuthModule,
-    UserModule
+    UserModule,
+    InquiriesModule
   ],
   controllers: [AppController],
   providers: [AppService],

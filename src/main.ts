@@ -9,13 +9,13 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  const TITLE = configService.get<string>('TITLE', 'Truck Boss App');
+  const TITLE = configService.get<string>('TITLE', 'Style Stamp');
   const DESCRIPTION = configService.get<string>(
     'DESCRIPTION',
-    'New Truck Boss API',
+    'New Style Stamp API',
   );
   const VERSION = configService.get<string>('VERSION', '1.0.0');
-  const PORT = configService.get<number>('PORT') || 3000;
+  const PORT = configService.get<number>('PORT') || 8080;
 
   // Create Swagger document
   const Swagger = new DocumentBuilder()
