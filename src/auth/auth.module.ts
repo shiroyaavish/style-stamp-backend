@@ -19,7 +19,7 @@ import { Admin, AdminSchema } from 'src/user/entities/admin.entity';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+        secret: configService.get<string>('auth.jwtSecret'),
         signOptions: {
           expiresIn: '7d'
         },

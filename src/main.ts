@@ -9,28 +9,29 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  const TITLE = configService.get<string>('TITLE', 'Style Stamp');
+  const TITLE = configService.get<string>('app.title', 'Style Stamp');
   const DESCRIPTION = configService.get<string>(
-    'DESCRIPTION',
+    'app.description',
     'New Style Stamp API',
   );
-  const VERSION = configService.get<string>('VERSION', '1.0.0');
-  const PORT = configService.get<number>('PORT') || 8080;
+  const VERSION = configService.get<string>('app.version', '1.0.0');
+  const PORT = configService.get<number>('port') || 8080;
 
   // Create Swagger document
-  const Swagger = new DocumentBuilder()
-    .setTitle(TITLE)
-    .setDescription(DESCRIPTION)
-    .setVersion(VERSION)
-    .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      'access-token',
-    )
-    .addSecurityRequirements('access-token')
-    .build();
-  const document = SwaggerModule.createDocument(app, Swagger);
-  SwaggerModule.setup('style-stamp', app, document);
-
+  if (configService.get<string>('environment') == 'development') {
+    const Swagger = new DocumentBuilder()
+      .setTitle(TITLE)
+      .setDescription(DESCRIPTION)
+      .setVersion(VERSION)
+      .addBearerAuth(
+        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        'access-token',
+      )
+      .addSecurityRequirements('access-token')
+      .build();
+    const document = SwaggerModule.createDocument(app, Swagger);
+    SwaggerModule.setup('style-stamp', app, document);
+  }
   app.useGlobalFilters(new CommonExceptionFilter());
   await app.listen(PORT);
 }

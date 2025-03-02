@@ -69,6 +69,7 @@ export class AuthService {
       },
     };
   }
+
   async adminCreate(adminAuthDto: AdminAuthDto) {
     const {
       name,
@@ -106,7 +107,7 @@ export class AuthService {
       countryCode: countryCode,
       countryCodeEmoji: countryCodeEmoji,
       email: email,
-      password:newPassword
+      password: newPassword,
     });
     await newUser.save();
     // console.log(newUser);
@@ -138,7 +139,7 @@ export class AuthService {
       );
     }
     const isUser = await this.adminModel.findOne({
-      $or: [{ mobileNumber: mobileNumber},{ email: email }],
+      $or: [{ mobileNumber: mobileNumber }, { email: email }],
     });
     // console.log(isUser);
 
@@ -164,12 +165,12 @@ export class AuthService {
     const uuid = randomUUID();
     const accessToken = await this.jwtService.signAsync(
       { id: uuid, role: 'Admin' },
-      { secret: this.configService.get<string>('JWT_SECRET'), expiresIn: '7d' },
+      { secret: this.configService.get<string>('auth.jwtSecret'), expiresIn: '7d' },
     );
     const refreshToken = await this.jwtService.signAsync(
       { id: uuid, role: 'Admin' },
       {
-        secret: this.configService.get<string>('REFRESH_SECRET'),
+        secret: this.configService.get<string>('auth.refreshSecret'),
         expiresIn: '30d',
       },
     );
@@ -195,6 +196,83 @@ export class AuthService {
         countryCodeEmoji: isUser['countryCodeEmoji'],
         email: isUser['email'],
       },
+    };
+  }
+
+  async refesrhToken(req: Request, refreshToken) {
+    const decodedJwt = this.jwtService.decode(refreshToken) as any;
+
+    if (decodedJwt.exp * 1000 < Date.now()) {
+      await this.authInfoModel.findOneAndDelete({ refreshToken: refreshToken });
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          message: 'Token Not Match',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    var authInfo = await this.authInfoModel.findOne({
+      uniqueId: decodedJwt.id,
+      refreshToken: refreshToken,
+    });
+    // console.log(authInfo);
+
+    if (!authInfo) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          message: 'Data Not Found',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    var user;
+    if (decodedJwt?.role == 'Admin') {
+      user = await this.adminModel.findById(authInfo.userId);
+    } else {
+      user = await this.userModel.findById(authInfo.userId);
+    }
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          message: 'User Not Found',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const payload = {
+      id: authInfo.uniqueId,
+      role: decodedJwt?.role ? decodedJwt.role : undefined,
+    };
+
+    const access_token = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('auth.jwtSecret'),
+      expiresIn: '7d',
+    });
+
+    const refresh_token = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('auth.refreshSecret'),
+      expiresIn: '30d',
+    });
+
+    await this.authInfoModel.findOneAndUpdate(
+        { uniqueId: authInfo.uniqueId },
+        {
+          accessToken: access_token,
+          refreshToken: refresh_token,
+        }
+      )
+      .exec();
+
+    return {
+      status: HttpStatus.OK,
+      message: 'Token Generated Successfully',
+      accessToken: access_token,
+      refreshToken: refresh_token,
     };
   }
 
