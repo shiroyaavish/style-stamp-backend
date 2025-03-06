@@ -37,7 +37,7 @@ export class AdminAuthDto {
     password:string
 }
 
-export class loginAuthDto{
+export class LoginAuthDto{
     @ApiProperty({required:false})
     mobileNumber:string
 
@@ -46,4 +46,20 @@ export class loginAuthDto{
 
     @ApiProperty({required:true})
     password:string
+}
+
+
+export class SendotpDto {
+    @ApiProperty({description:"user mobilenumber"})
+    mobileNumber:string
+
+    @ApiProperty({description:"user mobilenumber's country code"})
+    countryCode:string
+}
+export class VerifyOtpDto {
+    @ApiProperty({description:"user mobilenumber"})
+    mobileNumber:string
+
+    @ApiProperty({description:"otp which you recieved"})
+    otp:string
 }

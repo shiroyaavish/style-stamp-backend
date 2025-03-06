@@ -52,6 +52,9 @@ export class User {
   otp: string;
 
   @Prop()
+  otpExpired: Date;
+
+  @Prop()
   islogin: boolean;
 
   @Prop()

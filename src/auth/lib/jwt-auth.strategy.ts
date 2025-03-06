@@ -40,17 +40,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!authInfo) {
       throw new UnauthorizedException('Session expired. Please log in again.');
     }
-    let checkUser;
-    if (payload?.role) {
-      checkUser = await this.adminModel.findById(authInfo.userId).exec();
-      if (!checkUser) {
-        throw new UnauthorizedException('Admin Not Found !!');
-      }
-    } else {
-      checkUser = await this.userModel.findById(authInfo.userId).exec();
-      if (!checkUser) {
-        throw new UnauthorizedException('User Not Found !!');
-      }
+    const checkUser = await this.userModel.findById(authInfo.userId).exec();
+    if (!checkUser) {
+      throw new UnauthorizedException('User Not Found !!');
     }
 
     return {

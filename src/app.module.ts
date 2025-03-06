@@ -8,8 +8,10 @@ import { UserModule } from './user/user.module';
 import { InquiriesModule } from './inquiries/inquiries.module';
 import LogsMiddleware from './middlewares/logs.middleware';
 import { validate } from 'config/env.validation';
+import { CategoriesModule } from './categories/categories.module';
 import mongoose from 'mongoose';
 import configuration from 'config/configuration';
+import { SharedModule } from './shared/shared.module';
 
 mongoose.set('debug', true);
 
@@ -32,10 +34,13 @@ mongoose.set('debug', true);
     AuthModule,
     UserModule,
     InquiriesModule,
+    CategoriesModule,
+    SharedModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService]
 })
+
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LogsMiddleware).forRoutes('*');

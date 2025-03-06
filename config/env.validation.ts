@@ -34,6 +34,33 @@ export class EnvironmentVariables {
 
   @IsString()
   VERSION: string;
+
+  @IsString()
+  TWILIO_ACCOUNT_SID: string;
+
+  @IsString()
+  TWILIO_AUTH_TOKEN: string;
+
+  @IsString()
+  TWILIO_SERVICE_SID: string;
+
+  @IsString()
+  MAIL_HOST: string
+
+  @IsString()
+  MAIL_PORT: string
+
+  @IsString()
+  MAIL_SECURE: string
+
+  @IsString()
+  MAIL_USER: string
+
+  @IsString()
+  MAIL_PASSWORD: string
+
+  @IsString()
+  MAIL_FROM: string
 }
 
 export function validate(config: Record<string, unknown>) {
@@ -41,11 +68,18 @@ export function validate(config: Record<string, unknown>) {
     enableImplicitConversion: true, // Automatically converts string to numbers, etc.
   });
 
-  const errors = validateSync(validatedConfig, { skipMissingProperties: false });
+  const errors = validateSync(validatedConfig, {
+    skipMissingProperties: false,
+  });
 
   if (errors.length > 0) {
-    const errorMessages = errors.map(err => Object.values(err.constraints)).flat();
-    console.error('❌ Environment Variable Validation Failed:', errorMessages.join(', '));
+    const errorMessages = errors
+      .map((err) => Object.values(err.constraints))
+      .flat();
+    console.error(
+      '❌ Environment Variable Validation Failed:',
+      errorMessages.join(', '),
+    );
     process.exit(1);
   }
 

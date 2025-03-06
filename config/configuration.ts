@@ -13,4 +13,17 @@ export default () => ({
     description: process.env.DESCRIPTION,
     version: process.env.VERSION,
   },
+  twilio: {
+    account_sid: process.env.TWILIO_ACCOUNT_SID,
+    auth_token: process.env.TWILIO_AUTH_TOKEN,
+    service_sid: process.env.TWILIO_SERVICE_SID,
+  },
+  mail: {
+    host: process.env.MAIL_HOST,
+    port: process.env.MAIL_PORT,
+    secure: process.env.MAIL_SECURE,
+    user: process.env.MAIL_USER,
+    password: process.env.MAIL_PASSWORD,
+    from: process.env.MAIL_FROM,
+  }
 });

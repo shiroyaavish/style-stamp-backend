@@ -9,6 +9,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './lib/jwt-auth.strategy';
 import { Admin, AdminSchema } from 'src/user/entities/admin.entity';
+import { JwtAdminStrategy } from './lib/jwt-admin-auth.strategy';
+import { JwtAdminAuthGuard } from './lib/admin-auth.guard';
 
 @Module({
   imports:[
@@ -28,6 +30,6 @@ import { Admin, AdminSchema } from 'src/user/entities/admin.entity';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService,JwtService,ConfigService,JwtStrategy],
+  providers: [AuthService,JwtService,ConfigService,JwtStrategy,JwtAdminStrategy],
 })
 export class AuthModule {}

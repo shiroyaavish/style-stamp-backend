@@ -2,9 +2,10 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import {
   AdminAuthDto,
   CreateAuthDto,
-  loginAuthDto,
+  LoginAuthDto,
+  SendotpDto,
+  VerifyOtpDto,
 } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from 'src/user/entities/user.entity';
 import { Model } from 'mongoose';
@@ -14,6 +15,7 @@ import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { Admin, AdminDocument } from 'src/user/entities/admin.entity';
+import { TwilioService } from 'src/shared/services/twilio.service';
 
 @Injectable()
 export class AuthService {
@@ -21,9 +23,11 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Admin.name) private adminModel: Model<AdminDocument>,
     @InjectModel(AuthInfo.name) private authInfoModel: Model<AuthInfoDocument>,
+    private readonly twilioService: TwilioService,
     private jwtService: JwtService,
     private configService: ConfigService,
-  ) {}
+  ) { }
+
   async create(createAuthDto: CreateAuthDto) {
     const { name, mobileNumber, countryCode, countryCodeEmoji, email } =
       createAuthDto;
@@ -125,9 +129,141 @@ export class AuthService {
     };
   }
 
-  async sendOTP(sendotpDto) {}
+  async sendOTP(sendotpDto: SendotpDto) {
+    const { mobileNumber, countryCode } = sendotpDto;
+    const user = await this.userModel.findOne({ mobileNumber: mobileNumber });
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          message: "You're not registred",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    if (this.configService.get<string>('environment') == 'production') {
+      const fullMobileNumber = countryCode + mobileNumber;
+      const response = await this.twilioService.sendTwilioVerificationSMS(fullMobileNumber.toString())
+      if (response.status) {
+        return {
+          status: HttpStatus.OK,
+          message: "Otp Send Successfully",
+          allAttempts: response.allData,
+          mobileNumber: mobileNumber
+        };
+      } else {
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            message: response.error
+          },
+          HttpStatus.BAD_REQUEST
+        )
+      }
+    } else {
+      user.otp = '111111';
+      var date = new Date();
+      user.otpExpired = new Date(date.getTime() + 300000);
+      await this.userModel.findByIdAndUpdate(user.id, user, { new: true }).exec();
+      return {
+        status: HttpStatus.OK,
+        message: "Otp Send Successfully",
+        allAttempts: [],
+        mobileNumber: mobileNumber
+      }
+    }
+  }
 
-  async login(loginAuthDto: loginAuthDto) {
+  async verify(verifyOtpDto: VerifyOtpDto) {
+    const { mobileNumber, otp } = verifyOtpDto
+    const user = await this.userModel.findOne({ mobileNumber: mobileNumber });
+
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          message: "You're not registred",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (this.configService.get<string>("environment") === "production") {
+      try {
+        const mobileNumber = `${user.countryCode}${user.mobileNumber}`
+        const verificationCheck = await this.twilioService.verifyTwilioSMS(mobileNumber, otp);
+
+        if (verificationCheck.status !== 'approved') {
+          throw new HttpException(
+            {
+              status: HttpStatus.BAD_REQUEST,
+              message: "OTP Invalid",
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+      } catch (error) {
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            message: "OTP Invalid",
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } else {
+      if (otp !== user.otp || new Date(user.otpExpired) < new Date()) {
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            message: "OTP Invaid",
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    const uuid = randomUUID();
+    const accessToken = await this.jwtService.signAsync(
+      { id: uuid },
+      {
+        secret: this.configService.get<string>('auth.jwtSecret'),
+        expiresIn: '7d',
+      },
+    );
+    const refreshToken = await this.jwtService.signAsync(
+      { id: uuid },
+      {
+        secret: this.configService.get<string>('auth.refreshSecret'),
+        expiresIn: '30d',
+      },
+    );
+    const authInfo = {
+      uniqueId: uuid,
+      refreshToken,
+      accessToken,
+      userId: user.id,
+      userName: user['name'],
+      userMobileNumber: user['mobileNumber'],
+    };
+    await this.authInfoModel.create(authInfo);
+    const loginResponse = {
+      userId: user.id,
+      mobileNumber: user.mobileNumber,
+      countryCode: user.countryCode,
+      islogin: user.islogin,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
+    return {
+      status: HttpStatus.OK,
+      message: "OTP verify Successfully",
+      data: loginResponse,
+    };
+  }
+
+  async adminLogin(loginAuthDto: LoginAuthDto) {
     const { mobileNumber, email, password } = loginAuthDto;
     if ((!mobileNumber && !email) || !password) {
       throw new HttpException(
@@ -165,7 +301,10 @@ export class AuthService {
     const uuid = randomUUID();
     const accessToken = await this.jwtService.signAsync(
       { id: uuid, role: 'Admin' },
-      { secret: this.configService.get<string>('auth.jwtSecret'), expiresIn: '7d' },
+      {
+        secret: this.configService.get<string>('auth.jwtSecret'),
+        expiresIn: '7d',
+      },
     );
     const refreshToken = await this.jwtService.signAsync(
       { id: uuid, role: 'Admin' },
@@ -199,7 +338,7 @@ export class AuthService {
     };
   }
 
-  async refesrhToken(req: Request, refreshToken) {
+  async refreshToken(req: Request, refreshToken) {
     const decodedJwt = this.jwtService.decode(refreshToken) as any;
 
     if (decodedJwt.exp * 1000 < Date.now()) {
@@ -260,13 +399,12 @@ export class AuthService {
     });
 
     await this.authInfoModel.findOneAndUpdate(
-        { uniqueId: authInfo.uniqueId },
-        {
-          accessToken: access_token,
-          refreshToken: refresh_token,
-        }
-      )
-      .exec();
+      { uniqueId: authInfo.uniqueId },
+      {
+        accessToken: access_token,
+        refreshToken: refresh_token,
+      },
+    ).exec();
 
     return {
       status: HttpStatus.OK,
@@ -276,15 +414,20 @@ export class AuthService {
     };
   }
 
+  async logout(request: Request) {
+    let authHeader = request?.["headers"]?.["authorization"];
+    authHeader = (authHeader.split(' ')[1]) as any
+    const decodedJwt = this.jwtService.decode(authHeader) as any;
+
+    await this.authInfoModel.findOneAndDelete({ id: decodedJwt.id, accessToken: authHeader });
+
+    return {
+      status: HttpStatus.OK,
+      message: "User logged out successfully.",
+    }
+  }
+
   findOne(req) {
     return `This action returns a #${req['user']} auth`;
-  }
-
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
   }
 }
