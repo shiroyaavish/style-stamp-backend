@@ -12,23 +12,35 @@ export class CategoriesService {
   ) { }
 
   async create(request: Request, createCategoryDto: CreateCategoryDto) {
-    const { name, image, parentCategoryId, parentCategoryName } = createCategoryDto
-    const category = new this.categoryModel({
+    const { name, image, parentCategoryId } = createCategoryDto;
+
+    const parentCategory = parentCategoryId ? await this.categoryModel.findById(parentCategoryId).lean() : null;
+
+    const newCategory = await this.categoryModel.create({
       name,
       image,
       parentCategoryId,
-      parentCategoryName
-    })
-    await category.save()
-    await this.categoryModel.findByIdAndUpdate(parentCategoryId, { $push: { childs: String(category._id) } })
+      path: []
+    });
+
+    newCategory.path = parentCategory
+      ? [...parentCategory?.["path"], String(newCategory._id)]
+      : [String(newCategory._id)];
+
+    await newCategory.save();
+
     return {
-      message: 'Category created successfully',
-      data: category
-    }
+      message: "Category created successfully",
+      data: {
+        _id: newCategory["_id"],
+        name: newCategory["name"],
+        image: newCategory["image"]
+      }
+    };
   }
 
   async findAll(request: Request) {
-    const categories = await this.categoryModel.find({ parentCategoryId: null }).select("-parentCategoryId -parentCategoryName -__v -createdAt -updatedAt")
+    const categories = await this.categoryModel.find({ parentCategoryId: null }).sort({ name: 1 }).select("-parentCategoryId -parentCategoryName -__v -createdAt -updatedAt")
     return {
       status: HttpStatus.OK,
       message: 'Categories retrieved successfully',
@@ -36,114 +48,85 @@ export class CategoriesService {
     }
   }
 
-  // async findOne(request: Request, id: string): Promise<any> {
-  //   // const categories = await this.categoryModel.aggregate([
-  //   //   {
-  //   //     $match: { _id: new Types.ObjectId(id) } // Start with the given category
-  //   //   },
-  //   //   {
-  //   //     $graphLookup: {
-  //   //       from: "categories", // Collection name
-  //   //       startWith: "$childs", // Start with the given category ID
-  //   //       connectFromField: "childs", // Match _id of parent
-  //   //       connectToField: "_id", // Match parentCategoryId
-  //   //       as: "subcategories", // Store all children in this array
-  //   //       // maxDepth:9
-  //   //     }
-  //   //   }
-  //   // ]);
-  //   // const categories = await this.categoryModel.aggregate([
-  //   //   {
-  //   //     $lookup: {
-  //   //       from: "categories",
-  //   //       localField: "_id",
-  //   //       foreignField: "parentCategoryId",
-  //   //       as: "children"
-  //   //     }
-  //   //   },
-  //   //   {
-  //   //     $match: {
-  //   //       children: { $eq: [] }
-  //   //     }
-  //   //   },
-  //   //   // {
-  //   //   //   $match: {
-  //   //   //     name: { $regex: searchQuery, $options: "i" }
-  //   //   //   }
-  //   //   // },
-  //   //   {
-  //   //     $project: {
-  //   //       _id: 1,
-  //   //       name: 1,
-  //   //       parentCategoryId: 1
-  //   //     }
-  //   //   }
-  //   // ])
-  //   const categories = await this.categoryModel.findById(id).lean()
-  //   const subcategories = await this.getCategoryTree(id)
-  //   categories["subcategories"] = subcategories
-  //   return {
-  //     status: HttpStatus.OK,
-  //     message: 'Category retrieved successfully',
-  //     data: categories
-  //   }
-  // }
-  // async getCategoryTree(parentId = null): Promise<any> {
-  //   const categories = await this.categoryModel.find({ parentCategoryId: parentId }).sort({ _id: -1 }).select("-parentCategoryName -__v -createdAt -updatedAt").lean();
-
-  //   for (let category of categories) {
-  //     category["subcategories"] = await this.getCategoryTree(category._id); // Recursively fetch subcategories
-  //   }
-
-  //   return categories;
-  // };
-
   async findOne(request: Request, id: string): Promise<any> {
-    const categories = await this.categoryModel.aggregate([
-      {
-        $match: { _id: new Types.ObjectId(id) } // Start with the given category
-      },
-      {
-        $graphLookup: {
-          from: "categories", // Collection name
-          startWith: { $toString: "$_id" }, // Start with the given category ID
-          connectFromField: "_id", // Parent ID reference
-          connectToField: "parentCategoryId", // Match with child categories
-          as: "subcategories", // Store hierarchy
-          maxDepth: 4, // Ensures it fetches up to 4 levels deep
-          depthField: "level" // Optional, tracks depth of each subcategory
-        }
-      },
-      {
-        $sort: { "subcategories.level": 1 } // Sort by level (optional)
-      },
-      {
-        $project: {
-          _id: 1,
-          name: 1,
-          parentCategoryId: 1,
-          subcategories: {
-            _id: 1,
-            name: 1,
-            parentCategoryId: 1
-          }
-        }
-      }
-    ]);
+    const categories = await this.categoryModel.find({ path: { $in: [id] } }).select("_id name parentCategoryId").lean();
+
+    if (!categories || categories.length === 0) {
+      return {
+        status: HttpStatus.NOT_FOUND,
+        message: 'Category not found',
+        data: null
+      };
+    }
+
+    const updatedData = this.buildCategoryTree(categories);
 
     return {
       status: HttpStatus.OK,
       message: 'Category retrieved successfully',
-      data: categories[0] || null
+      data: updatedData
     };
   }
 
+  buildCategoryTree(categories: any[]): any {
+    // Create a lookup map and initialize children arrays
+    const map = {};
+    categories.forEach(category => {
+      // Ensure we always use strings for comparisons
+      const id = category._id.toString();
+      map[id] = { ...category, subcategories: [] };
+    });
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+    const tree = [];
+
+    categories.forEach(category => {
+      const id = category._id.toString();
+      if (category.parentCategoryId) {
+        // Convert parentCategoryId to string for comparison
+        const parentId = category.parentCategoryId.toString();
+        // If the parent exists in our map, add this node as a child
+        if (map[parentId]) {
+          map[parentId]?.subcategories.push(map[id]);
+        } else {
+          // If parent is not found, it might be a root node or a data issue
+          tree.push(map[id]);
+        }
+      } else {
+        // No parentCategoryId means this is a root node
+        tree.push(map[id]);
+      }
+    });
+
+    return tree;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async update(request: Request, id: string, updateCategoryDto: UpdateCategoryDto) {
+    const parentCategory = updateCategoryDto["parentCategoryId"] && await this.categoryModel.findById(updateCategoryDto["parentCategoryId"]) || null;
+
+    await this.categoryModel.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          name: updateCategoryDto["name"],
+          image: updateCategoryDto["image"],
+          parentCategoryId: updateCategoryDto["parentCategoryId"],
+          path: parentCategory && [...parentCategory?.["path"], id]
+        }
+      },
+    )
+
+    return {
+      status: HttpStatus.OK,
+      message: "Category updated successfully",
+    }
+  }
+
+  async remove(request: Request, id: string) {
+    await this.categoryModel.findByIdAndDelete(id);
+
+    return {
+      status: HttpStatus.OK,
+      message: "Category removed successfully",
+    }
   }
 }

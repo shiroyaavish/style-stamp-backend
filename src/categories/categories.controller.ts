@@ -29,13 +29,15 @@ export class CategoriesController {
     return this.categoriesService.findOne(request, id);
   }
 
+  @UseGuards(JwtAdminAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
-    return this.categoriesService.update(+id, updateCategoryDto);
+  update(@Req() request: Request, @Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
+    return this.categoriesService.update(request,id, updateCategoryDto);
   }
 
+  @UseGuards(JwtAdminAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoriesService.remove(+id);
+  remove(@Req() request:Request,@Param('id') id: string) {
+    return this.categoriesService.remove(request,id);
   }
 }

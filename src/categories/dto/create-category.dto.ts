@@ -15,9 +15,4 @@ export class CreateCategoryDto {
     @IsOptional()
     @ApiProperty({ description: "Upper level category id" })
     parentCategoryId?: string
-
-    @IsString()
-    @IsOptional()
-    @ApiProperty({ description: "Upper level category name" })
-    parentCategoryName?: string
 }

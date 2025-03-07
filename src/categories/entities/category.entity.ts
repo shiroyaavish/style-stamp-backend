@@ -21,12 +21,12 @@ export class Category {
     parentCategoryId: string
 
 
-    @Prop({ type: String, default: null })
-    parentCategoryName: string
+    // @Prop({ type: [mongoose.Schema.Types.ObjectId], default: [] })
+    // childs: mongoose.Schema.Types.ObjectId[]
 
-    @Prop({ type: [mongoose.Schema.Types.ObjectId], default: [] })
-    childs: mongoose.Schema.Types.ObjectId[]
-
+    @Prop({ type: [String], default: [] }) 
+    path: string[];
+    
     @Prop({ type: Number })
     createdAt: number
 
