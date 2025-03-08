@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { CommonExceptionFilter } from './middlewares/common-exception.filter';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -33,6 +34,9 @@ async function bootstrap() {
     SwaggerModule.setup('style-stamp', app, document);
   }
   app.useGlobalFilters(new CommonExceptionFilter());
+
+  app.use(compression());
+
   await app.listen(PORT);
 }
 bootstrap();
