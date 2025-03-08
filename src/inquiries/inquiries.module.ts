@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { InquiriesService } from './inquiries.service';
 import { InquiriesController } from './inquiries.controller';
-import { Mongoose } from 'mongoose';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Inquiry, InquirySchema } from './entities/inquiry.entity';
 

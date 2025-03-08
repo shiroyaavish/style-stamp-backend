@@ -35,12 +35,11 @@ mongoose.set('debug', true);
     UserModule,
     InquiriesModule,
     CategoriesModule,
-    SharedModule
+    SharedModule,
   ],
   controllers: [AppController],
-  providers: [AppService]
+  providers: [AppService],
 })
-
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LogsMiddleware).forRoutes('*');

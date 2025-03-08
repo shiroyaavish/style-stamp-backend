@@ -9,7 +9,9 @@ import { Admin, AdminSchema } from './entities/admin.entity';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    MongooseModule.forFeature([{ name: AuthInfo.name, schema: authInfoSchema }]),
+    MongooseModule.forFeature([
+      { name: AuthInfo.name, schema: authInfoSchema },
+    ]),
     MongooseModule.forFeature([{ name: Admin.name, schema: AdminSchema }]),
   ],
   controllers: [UserController],

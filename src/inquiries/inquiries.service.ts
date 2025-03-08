@@ -4,7 +4,6 @@ import { UpdateInquiryDto } from './dto/update-inquiry.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Inquiry, InquiryDocument } from './entities/inquiry.entity';
 import { Model } from 'mongoose';
-import { sendEmail } from 'src/utils/mail.utils';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'src/shared/services/email.service';
 
@@ -13,12 +12,12 @@ export class InquiriesService {
   constructor(
     @InjectModel(Inquiry.name) private inquiryModel: Model<InquiryDocument>,
     private readonly emailService: EmailService,
-    private readonly configService: ConfigService
-  ) { }
+    private readonly configService: ConfigService,
+  ) {}
   async create(createInquiryDto: CreateInquiryDto) {
-    const to = this.configService.get<string>("mail.user");
+    const to = this.configService.get<string>('mail.user');
 
-    const sendMail = await this.emailService.sendEmail(to, createInquiryDto);
+    await this.emailService.sendEmail(to, createInquiryDto);
     return {
       status: HttpStatus.CREATED,
       message:

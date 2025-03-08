@@ -3,10 +3,6 @@ import mongoose from 'mongoose';
 
 export type UserDocument = User & Document;
 
-function customTimestamp(): number {
-  return new Date().getTime();
-}
-
 @Schema({
   timestamps: {
     currentTime: () => {
