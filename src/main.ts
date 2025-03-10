@@ -7,7 +7,7 @@ import * as compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+app.enableCors()
   const configService = app.get(ConfigService);
 
   const TITLE = configService.get<string>('app.title', 'Style Stamp');
