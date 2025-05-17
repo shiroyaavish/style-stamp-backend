@@ -3,6 +3,10 @@ import mongoose from 'mongoose';
 
 export type UserDocument = User & Document;
 
+function customTimestamp(): number {
+  return new Date().getTime();
+}
+
 @Schema({
   timestamps: {
     currentTime: () => {
@@ -49,9 +53,6 @@ export class User {
 
   @Prop()
   otpExpired: Date;
-
-  @Prop()
-  islogin: boolean;
 
   @Prop()
   createdAt: number;

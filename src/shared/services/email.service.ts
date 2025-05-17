@@ -1,42 +1,45 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { CreateInquiryDto } from 'src/inquiries/dto/create-inquiry.dto';
-import { EmailConfig } from '../dto/mail.dto';
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { CreateInquiryDto } from "src/inquiries/dto/create-inquiry.dto";
+import { EmailConfig } from "../dto/mail.dto";
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-  constructor(private configService: ConfigService) {}
+    constructor(
+        private configService: ConfigService
+    ) { }
 
-  getEmailConfig(): EmailConfig {
-    return {
-      host: this.configService.get<string>('mail.host'),
-      port: parseInt(this.configService.get<string>('mail.port'), 10),
-      secure: this.configService.get<string>('mail.secure') == 'true',
-      auth: {
-        user: this.configService.get<string>('mail.user'),
-        pass: this.configService.get<string>('mail.password'),
-      },
-      from: this.configService.get<string>('mail.from'),
+
+    getEmailConfig(): EmailConfig {
+        return {
+            host: this.configService.get<string>("mail.host"),
+            port: parseInt(this.configService.get<string>("mail.port"), 10),
+            secure: this.configService.get<string>("mail.secure") == 'true',
+            auth: {
+                user: this.configService.get<string>("mail.user"),
+                pass: this.configService.get<string>("mail.password"),
+            },
+            from: this.configService.get<string>("mail.from"),
+        };
     };
-  }
 
-  createTransporter() {
-    const config = this.getEmailConfig();
-    return nodemailer.createTransport({
-      host: config.host,
-      port: config.port,
-      secure: config.secure,
-      auth: config.auth,
-    });
-  }
+    createTransporter() {
+        const config = this.getEmailConfig();
+        return nodemailer.createTransport({
+            host: config.host,
+            port: config.port,
+            secure: config.secure,
+            auth: config.auth,
+        });
+    };
 
-  async sendEmail(to: string[] | string, details: CreateInquiryDto) {
-    try {
-      const transporter = this.createTransporter();
-      const config = this.getEmailConfig();
-      const subject = `Inquiry From ${details['firstName']} ${details['lastName']}`;
-      const html = `
+    async sendEmail(to: string[] | string, details: CreateInquiryDto) {
+        try {
+            const transporter = this.createTransporter();
+            const config = this.getEmailConfig();
+            const subject = `Inquiry From ${details['firstName']} ${details['lastName']}`;
+            const html = `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background: linear-gradient(to bottom right, #ffffff, #f5f8ff);">
             <div style="text-align: center; margin-bottom: 25px;">
                 <h2 style="color: #a085ec; margin-bottom: 5px; font-weight: 600;">New Inquiry Received</h2>
@@ -70,26 +73,26 @@ export class EmailService {
             </div>
         </div>
         `;
-      const mailOptions = {
-        from: config.from,
-        to: Array.isArray(to) ? to.join(',') : to,
-        subject: subject,
-        text: null,
-        html: html,
-      };
+            const mailOptions = {
+                from: config.from,
+                to: Array.isArray(to) ? to.join(',') : to,
+                subject: subject,
+                text: null,
+                html: html,
+            };
 
-      const info = await transporter.sendMail(mailOptions);
-      return { success: true, messageId: info.messageId };
-    } catch (error) {
-      console.error('Error sending email:', error);
-      // return { success: false, error };
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          message: 'Email Is Not Valid',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
+            const info = await transporter.sendMail(mailOptions);
+            return { success: true, messageId: info.messageId };
+        } catch (error) {
+            console.error('Error sending email:', error);
+            // return { success: false, error };
+            throw new HttpException(
+                {
+                    status: HttpStatus.BAD_REQUEST,
+                    message: 'Email Is Not Valid',
+                },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+    };
 }

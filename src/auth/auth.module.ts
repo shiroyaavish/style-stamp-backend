@@ -10,33 +10,26 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './lib/jwt-auth.strategy';
 import { Admin, AdminSchema } from 'src/user/entities/admin.entity';
 import { JwtAdminStrategy } from './lib/jwt-admin-auth.strategy';
+import { JwtAdminAuthGuard } from './lib/admin-auth.guard';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    MongooseModule.forFeature([
-      { name: AuthInfo.name, schema: authInfoSchema },
-    ]),
-    MongooseModule.forFeature([{ name: Admin.name, schema: AdminSchema }]),
+  imports:[
+    MongooseModule.forFeature([{name:User.name,schema:UserSchema}]),
+    MongooseModule.forFeature([{name:AuthInfo.name,schema:authInfoSchema}]),
+    MongooseModule.forFeature([{name:Admin.name,schema:AdminSchema}]),
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('auth.jwtSecret'),
         signOptions: {
-          expiresIn: '7d',
+          expiresIn: '7d'
         },
       }),
       inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    JwtService,
-    ConfigService,
-    JwtStrategy,
-    JwtAdminStrategy,
-  ],
+  providers: [AuthService,JwtService,ConfigService,JwtStrategy,JwtAdminStrategy],
 })
 export class AuthModule {}

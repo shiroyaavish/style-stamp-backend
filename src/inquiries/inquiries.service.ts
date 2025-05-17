@@ -12,12 +12,12 @@ export class InquiriesService {
   constructor(
     @InjectModel(Inquiry.name) private inquiryModel: Model<InquiryDocument>,
     private readonly emailService: EmailService,
-    private readonly configService: ConfigService,
-  ) {}
+    private readonly configService: ConfigService
+  ) { }
   async create(createInquiryDto: CreateInquiryDto) {
-    const to = this.configService.get<string>('mail.user');
+    const to = this.configService.get<string>("mail.user");
 
-    await this.emailService.sendEmail(to, createInquiryDto);
+    const sendMail = await this.emailService.sendEmail(to, createInquiryDto);
     return {
       status: HttpStatus.CREATED,
       message:

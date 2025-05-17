@@ -33,4 +33,4 @@ export class Admin {
   updatedAt: number;
 }
 
-export const AdminSchema = SchemaFactory.createForClass(Admin);
+export const AdminSchema = SchemaFactory.createForClass(Admin)

@@ -21,16 +21,14 @@ export class InquiriesController {
   constructor(private readonly inquiriesService: InquiriesService) {}
 
   @Post()
-  @ApiProperty({ description: 'Create inquiries using API' })
+  @ApiProperty({description:"Create inquiries using API"})
   create(@Body() createInquiryDto: CreateInquiryDto) {
     return this.inquiriesService.create(createInquiryDto);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @ApiProperty({
-    description: 'Here you can find all inquiries details using API',
-  })
+  @ApiProperty({description:"Here you can find all inquiries details using API"})
   findAll(@Query() findInquiryDto: FindInquiryDto) {
     return this.inquiriesService.findAll(findInquiryDto);
   }

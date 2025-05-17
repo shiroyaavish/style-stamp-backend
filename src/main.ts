@@ -3,11 +3,15 @@ import { AppModule } from './app.module';
 import { CommonExceptionFilter } from './middlewares/common-exception.filter';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import * as compression from 'compression';
+import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-app.enableCors()
+  
+  app.enableCors()
+  app.use(bodyParser.json({limit:"50mb"}))
+  app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
   const configService = app.get(ConfigService);
 
   const TITLE = configService.get<string>('app.title', 'Style Stamp');
@@ -34,9 +38,6 @@ app.enableCors()
     SwaggerModule.setup('style-stamp', app, document);
   }
   app.useGlobalFilters(new CommonExceptionFilter());
-
-  app.use(compression());
-
   await app.listen(PORT);
 }
 bootstrap();

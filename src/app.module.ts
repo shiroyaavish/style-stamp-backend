@@ -12,6 +12,10 @@ import { CategoriesModule } from './categories/categories.module';
 import mongoose from 'mongoose';
 import configuration from 'config/configuration';
 import { SharedModule } from './shared/shared.module';
+import { ProductsModule } from './products/products.module';
+import { AttributesModule } from './attributes/attributes.module';
+import { OrderModule } from './order/order.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 mongoose.set('debug', true);
 
@@ -36,10 +40,15 @@ mongoose.set('debug', true);
     InquiriesModule,
     CategoriesModule,
     SharedModule,
+    ProductsModule,
+    AttributesModule,
+    OrderModule,
+    TransactionModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService]
 })
+
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LogsMiddleware).forRoutes('*');

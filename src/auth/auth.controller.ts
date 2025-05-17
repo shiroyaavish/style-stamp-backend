@@ -3,6 +3,9 @@ import {
   Get,
   Post,
   Body,
+  Patch,
+  Param,
+  Delete,
   UseGuards,
   Request,
   Query,
@@ -16,6 +19,7 @@ import {
   SendotpDto,
   VerifyOtpDto,
 } from './dto/create-auth.dto';
+import { UpdateAuthDto } from './dto/update-auth.dto';
 import { JwtAuthGuard } from './lib/jwt-auth.guard';
 
 @Controller('auth')
@@ -68,4 +72,5 @@ export class AuthController {
   refreshToken(@Req() request: Request, @Query('token') token: string) {
     return this.authService.refreshToken(request, token);
   }
+  
 }

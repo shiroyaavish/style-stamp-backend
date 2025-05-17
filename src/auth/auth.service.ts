@@ -143,43 +143,39 @@ export class AuthService {
     }
     if (this.configService.get<string>('environment') == 'production') {
       const fullMobileNumber = countryCode + mobileNumber;
-      const response = await this.twilioService.sendTwilioVerificationSMS(
-        fullMobileNumber.toString(),
-      );
+      const response = await this.twilioService.sendTwilioVerificationSMS(fullMobileNumber.toString())
       if (response.status) {
         return {
           status: HttpStatus.OK,
-          message: 'Otp Send Successfully',
+          message: "Otp Send Successfully",
           allAttempts: response.allData,
-          mobileNumber: mobileNumber,
+          mobileNumber: mobileNumber
         };
       } else {
         throw new HttpException(
           {
             status: HttpStatus.BAD_REQUEST,
-            message: response.error,
+            message: response.error
           },
-          HttpStatus.BAD_REQUEST,
-        );
+          HttpStatus.BAD_REQUEST
+        )
       }
     } else {
       user.otp = '111111';
-      const date = new Date();
+      var date = new Date();
       user.otpExpired = new Date(date.getTime() + 300000);
-      await this.userModel
-        .findByIdAndUpdate(user.id, user, { new: true })
-        .exec();
+      await this.userModel.findByIdAndUpdate(user.id, user, { new: true }).exec();
       return {
         status: HttpStatus.OK,
-        message: 'Otp Send Successfully',
+        message: "Otp Send Successfully",
         allAttempts: [],
-        mobileNumber: mobileNumber,
-      };
+        mobileNumber: mobileNumber
+      }
     }
   }
 
   async verify(verifyOtpDto: VerifyOtpDto) {
-    const { mobileNumber, otp } = verifyOtpDto;
+    const { mobileNumber, otp } = verifyOtpDto
     const user = await this.userModel.findOne({ mobileNumber: mobileNumber });
 
     if (!user) {
@@ -192,30 +188,26 @@ export class AuthService {
       );
     }
 
-    if (this.configService.get<string>('environment') === 'production') {
+    if (this.configService.get<string>("environment") === "production") {
       try {
-        const mobileNumber = `${user.countryCode}${user.mobileNumber}`;
-        const verificationCheck = await this.twilioService.verifyTwilioSMS(
-          mobileNumber,
-          otp,
-        );
+        const mobileNumber = `${user.countryCode}${user.mobileNumber}`
+        const verificationCheck = await this.twilioService.verifyTwilioSMS(mobileNumber, otp);
 
         if (verificationCheck.status !== 'approved') {
           throw new HttpException(
             {
               status: HttpStatus.BAD_REQUEST,
-              message: 'OTP Invalid',
+              message: "OTP Invalid",
             },
             HttpStatus.BAD_REQUEST,
           );
         }
-      } catch (error) {
-        console.log(error.message);
 
+      } catch (error) {
         throw new HttpException(
           {
             status: HttpStatus.BAD_REQUEST,
-            message: 'OTP Invalid',
+            message: "OTP Invalid",
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -225,7 +217,7 @@ export class AuthService {
         throw new HttpException(
           {
             status: HttpStatus.BAD_REQUEST,
-            message: 'OTP Invaid',
+            message: "OTP Invaid",
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -260,13 +252,12 @@ export class AuthService {
       userId: user.id,
       mobileNumber: user.mobileNumber,
       countryCode: user.countryCode,
-      islogin: user.islogin,
       accessToken: accessToken,
       refreshToken: refreshToken,
     };
     return {
       status: HttpStatus.OK,
-      message: 'OTP verify Successfully',
+      message: "OTP verify Successfully",
       data: loginResponse,
     };
   }
@@ -360,7 +351,7 @@ export class AuthService {
       );
     }
 
-    const authInfo = await this.authInfoModel.findOne({
+    var authInfo = await this.authInfoModel.findOne({
       uniqueId: decodedJwt.id,
       refreshToken: refreshToken,
     });
@@ -375,7 +366,7 @@ export class AuthService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    let user;
+    var user;
     if (decodedJwt?.role == 'Admin') {
       user = await this.adminModel.findById(authInfo.userId);
     } else {
@@ -406,15 +397,13 @@ export class AuthService {
       expiresIn: '30d',
     });
 
-    await this.authInfoModel
-      .findOneAndUpdate(
-        { uniqueId: authInfo.uniqueId },
-        {
-          accessToken: access_token,
-          refreshToken: refresh_token,
-        },
-      )
-      .exec();
+    await this.authInfoModel.findOneAndUpdate(
+      { uniqueId: authInfo.uniqueId },
+      {
+        accessToken: access_token,
+        refreshToken: refresh_token,
+      },
+    ).exec();
 
     return {
       status: HttpStatus.OK,
@@ -425,19 +414,16 @@ export class AuthService {
   }
 
   async logout(request: Request) {
-    let authHeader = request?.['headers']?.['authorization'];
-    authHeader = authHeader.split(' ')[1] as any;
+    let authHeader = request?.["headers"]?.["authorization"];
+    authHeader = (authHeader.split(' ')[1]) as any
     const decodedJwt = this.jwtService.decode(authHeader) as any;
 
-    await this.authInfoModel.findOneAndDelete({
-      id: decodedJwt.id,
-      accessToken: authHeader,
-    });
+    await this.authInfoModel.findOneAndDelete({ id: decodedJwt.id, accessToken: authHeader });
 
     return {
       status: HttpStatus.OK,
-      message: 'User logged out successfully.',
-    };
+      message: "User logged out successfully.",
+    }
   }
 
   findOne(req) {

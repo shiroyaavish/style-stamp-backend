@@ -15,7 +15,7 @@ export class Inquiry {
   _id: mongoose.Schema.Types.ObjectId;
 
   @Prop()
-  name: string;
+  name: String;
 
   @Prop()
   email: string;
