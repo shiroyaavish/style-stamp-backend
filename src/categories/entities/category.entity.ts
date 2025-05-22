@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose from "mongoose";
-import { statusEnum } from "src/constant/status";
+import { StatusEnum } from "src/constant/status";
 
 export type CategoryDocument = Category & Document
 
@@ -23,8 +23,8 @@ export class Category {
 
     // @Prop({ type: [mongoose.Schema.Types.ObjectId], default: [] })
     // childs: mongoose.Schema.Types.ObjectId[]
-    @Prop({ type: Boolean, default: true })
-    isActive: boolean
+    @Prop({ type: String, default: StatusEnum.Deactive })
+    status: StatusEnum
 
     @Prop({ type: Boolean, default: false })
     isDelete: boolean

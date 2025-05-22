@@ -6,6 +6,7 @@ import { Product, ProductDocument } from './entities/product.entity';
 import { Model } from 'mongoose';
 import { generateUniqueIdSlug } from 'src/utils/uniqueCode.utils';
 import { GenerateSlug } from 'src/utils/utils';
+import { StatusEnum } from 'src/constant/status';
 
 @Injectable()
 export class ProductsService {
@@ -41,7 +42,7 @@ export class ProductsService {
       images: createProductDto["images"],
       isCustomizable: createProductDto["isCustomizable"],
       mockupImage: createProductDto["mockupImage"],
-      isActive: createProductDto["isActive"],
+      status: createProductDto["status"],
     };
     await this.productModel.create(productData);
     return {
@@ -81,7 +82,7 @@ export class ProductsService {
           _id: 1,
           title: 1,
           category: 1,
-          isActive: 1,
+          status: 1,
           isDelete: 1,
           images: 1,
           salePrice: 1
@@ -110,7 +111,7 @@ export class ProductsService {
   }
 
   async findByCategory(request: Request, findProductByCategoryDto: FindProductByCategoryDto) {
-    
+
     const { categoryId, material, maxPrice, minPrice, limit = 10, page = 1, priceLowToHigh, colors } = findProductByCategoryDto
     const filter: any = { categoryId: categoryId };
 
@@ -187,7 +188,7 @@ export class ProductsService {
       images: updatedData["images"],
       isCustomizable: updatedData["isCustomizable"],
       mockupImage: updatedData["mockupImage"],
-      isActive: updatedData["isActive"],
+      status: updatedData["status"],
     }
 
     const isTitleSame = product["title"] == updatedData["title"]
@@ -205,10 +206,10 @@ export class ProductsService {
     }
   }
 
-  async updatedStatus(request: Request, id: string) {
+  async updatedStatus(request: Request, id: string, status: string) {
     const product = await this.productModel.findById(id)
 
-    await this.productModel.findByIdAndUpdate(id, { $set: { isActive: !product.isActive } })
+    await this.productModel.findByIdAndUpdate(id, { $set: { status: status } })
 
     return {
       status: HttpStatus.OK,
@@ -217,7 +218,7 @@ export class ProductsService {
   }
 
   async remove(request: Request, id: string) {
-    await this.productModel.findByIdAndUpdate(id, { $set: { isDelete: true, isActive: false } })
+    await this.productModel.findByIdAndUpdate(id, { $set: { isDelete: true, status: StatusEnum.Action } })
 
     return {
       status: HttpStatus.OK,

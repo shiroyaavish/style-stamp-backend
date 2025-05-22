@@ -6,6 +6,31 @@ export type UserDocument = User & Document;
 function customTimestamp(): number {
   return new Date().getTime();
 }
+export class Address {
+  @Prop()
+  firstName: string
+
+  @Prop()
+  lastName: string
+
+  @Prop()
+  address1: string
+
+  @Prop()
+  address2: string
+
+  @Prop()
+  zipCode: string
+
+  @Prop()
+  country: string
+
+  @Prop()
+  state: string
+
+  @Prop()
+  city: string
+}
 
 @Schema({
   timestamps: {
@@ -21,26 +46,14 @@ export class User {
   @Prop()
   name: string;
 
-  @Prop()
-  address: string;
-
-  @Prop()
-  city: string;
-
-  @Prop()
-  state: string;
-
-  @Prop()
-  country: string;
-
-  @Prop()
-  pincode: string;
+  @Prop({type:Address})
+  address:Address
 
   @Prop()
   mobileNumber: string;
 
   @Prop()
-  countryCode: string;
+  phoneCode: string;
 
   @Prop()
   countryCodeEmoji: string;
@@ -53,6 +66,9 @@ export class User {
 
   @Prop()
   otpExpired: Date;
+
+  @Prop({type:Boolean,default:false})
+  isBlocked: boolean;
 
   @Prop()
   createdAt: number;

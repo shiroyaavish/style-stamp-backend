@@ -1,20 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { CreateOrderDto, PaginationDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { OptionalJwtAuthGuard } from 'src/auth/lib/optional-auth.strategy';
 
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) { }
 
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.create(createOrderDto);
+  @UseGuards(OptionalJwtAuthGuard)
+  create(@Req() request: Request, @Body() createOrderDto: CreateOrderDto) {
+    return this.orderService.create(request, createOrderDto);
   }
 
   @Get()
-  findAll(@Query("transactionId") transactionId: number) {
-    return this.orderService.findAll(transactionId);
+  findAll(@Req() request: Request, @Body() paginationDto: PaginationDto) {
+    return this.orderService.findAll(request, paginationDto);
   }
 
   @Post('/webhook')

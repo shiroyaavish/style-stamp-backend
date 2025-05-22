@@ -8,7 +8,7 @@ export class CreateAuthDto {
     mobileNumber:string
 
     @ApiProperty()
-    countryCode : string
+    phoneCode : string
 
     @ApiProperty()
     countryCodeEmoji:string
@@ -25,7 +25,7 @@ export class AdminAuthDto {
     mobileNumber:string
 
     @ApiProperty()
-    countryCode : string
+    phoneCode : string
 
     @ApiProperty()
     countryCodeEmoji:string
@@ -53,8 +53,8 @@ export class SendotpDto {
     @ApiProperty({description:"user mobilenumber"})
     mobileNumber:string
 
-    @ApiProperty({description:"user mobilenumber's country code"})
-    countryCode:string
+    @ApiProperty({description:"user mobilenumber's phone code"})
+    phoneCode:string
 }
 export class VerifyOtpDto {
     @ApiProperty({description:"user mobilenumber"})

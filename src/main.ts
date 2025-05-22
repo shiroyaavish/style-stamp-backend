@@ -4,6 +4,7 @@ import { CommonExceptionFilter } from './middlewares/common-exception.filter';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as bodyParser from 'body-parser';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,6 +12,14 @@ async function bootstrap() {
   app.enableCors()
   app.use(bodyParser.json({limit:"50mb"}))
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
+   app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted:true
+    }),
+  );
 
   const configService = app.get(ConfigService);
 

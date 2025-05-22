@@ -16,6 +16,8 @@ import { ProductsModule } from './products/products.module';
 import { AttributesModule } from './attributes/attributes.module';
 import { OrderModule } from './order/order.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { CartsModule } from './carts/carts.module';
+import { DatabaseModule } from './database/database.module';
 
 mongoose.set('debug', true);
 
@@ -43,7 +45,9 @@ mongoose.set('debug', true);
     ProductsModule,
     AttributesModule,
     OrderModule,
-    TransactionModule
+    TransactionModule,
+    CartsModule,
+    DatabaseModule
   ],
   controllers: [AppController],
   providers: [AppService]

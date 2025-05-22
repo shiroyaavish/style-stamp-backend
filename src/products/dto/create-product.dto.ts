@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
+import { StatusEnum } from "src/constant/status";
 
 export class Category {
     @ApiProperty()
@@ -120,8 +121,8 @@ export class CreateProductDto {
     mockupImage?: string
 
     @ApiProperty({ default: true })
-    @IsBoolean()
-    isActive: boolean
+    @IsString()
+    status: StatusEnum
 }
 
 

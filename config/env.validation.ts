@@ -1,5 +1,5 @@
 import { IsNumber, IsString, IsEnum } from 'class-validator';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, Transform } from 'class-transformer';
 import { validateSync } from 'class-validator';
 
 export enum Environment {
@@ -61,6 +61,17 @@ export class EnvironmentVariables {
 
   @IsString()
   MAIL_FROM: string
+
+  @IsNumber()
+  @Transform(({ value }) => Number(value))
+  SPACE_ID: number
+
+  @IsNumber()
+  @Transform(({ value }) => Number(value))
+  USER_ID: number
+
+  @IsString()
+  API_SECRET: string
 }
 
 export function validate(config: Record<string, unknown>) {

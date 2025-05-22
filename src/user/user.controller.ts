@@ -1,15 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto, PaginationDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAdminAuthGuard } from 'src/auth/lib/admin-auth.guard';
+import { JwtAuthGuard } from 'src/auth/lib/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from 'src/auth/lib/optional-auth.strategy';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  @UseGuards(OptionalJwtAuthGuard)
+  create(@Req() request: Request, @Body() createUserDto: CreateUserDto) {
+    console.log(request["user"]);
+
     return this.userService.create(createUserDto);
   }
 
@@ -32,5 +37,10 @@ export class UserController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);
+  }
+
+  @Patch("/bloack")
+  blockUser(@Req() request: Request, @Query("id") id: string){
+    return this.userService.blockUser(request,id)
   }
 }

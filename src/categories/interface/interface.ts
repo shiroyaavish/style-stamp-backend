@@ -6,7 +6,7 @@ interface CategoryWithCount{
     image:string,
     createdAt:number,
     updatedAt:number,
-    isActive:boolean,
+    status:string,
     isDelete:boolean,
     count?:number
 }

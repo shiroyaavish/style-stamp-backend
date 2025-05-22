@@ -1,4 +1,5 @@
-export const statusEnum = {
-    Active: "active",
-    Deactive: "deactive"
+export enum StatusEnum {
+    Active = "active",
+    Deactive = "deactive",
+    Action = "action"
 }

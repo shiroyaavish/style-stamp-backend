@@ -13,6 +13,7 @@ export const generateUniqueIdSlug = (length = 6) => {
     return generateUniqueId(length, 'abcdefghjkmnpqrstuvwxyz0123456789');
 };
 
-export const generateUniqueIdOrder = (length = 6) => {
+export const generateUniqueIdOrder = (length = 14) => {
     return generateUniqueId(length, 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789');
 };
+

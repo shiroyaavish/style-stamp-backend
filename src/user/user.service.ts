@@ -53,4 +53,16 @@ export class UserService {
   remove(id: number) {
     return `This action removes a #${id} user`;
   }
+
+  async blockUser(request: Request, id: string) {
+    
+    const findUser = await this.userModel.findById(id);
+
+    await this.userModel.findByIdAndUpdate(id, { isBlocked: findUser.isBlocked });
+
+    return {
+      status: HttpStatus.OK,
+      message: `user ${findUser.isBlocked ? "unblocked" : "blocked"} Successfully`,
+    }
+  }
 }

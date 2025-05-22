@@ -1,13 +1,54 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Types } from "mongoose";
 
-@Schema()
-export class Order {
+export type OrderDocument = Order & Document
+export class Address {
     @Prop()
+    firstName: string
+
+    @Prop()
+    lastName: string
+
+    @Prop()
+    address1: string
+
+    @Prop()
+    address2: string
+
+    @Prop()
+    zipCode: string
+
+    @Prop()
+    country: string
+
+    @Prop()
+    state: string
+
+    @Prop()
+    city: string
+
+    @Prop()
+    deliveryInstruction: string
+
+    @Prop()
+    phoneCode: string
+
+    @Prop()
+    mobileNumber: string
+
+}
+@Schema({
+    timestamps: {
+        currentTime: () => {
+            return Date.now()
+        }
+    }
+})
+export class Order {
     _id: Types.ObjectId
 
     @Prop()
-    orderItems: string[]
+    cartItems: string[]
 
     @Prop()
     totalPrice: number
@@ -22,16 +63,31 @@ export class Order {
     promoCode: string
 
     @Prop()
-    paymentId: string
+    isShpping: boolean
+
+    @Prop()
+    shippingCharge: number
+
+    @Prop()
+    transactionId: string
 
     @Prop()
     orderId: string
 
     @Prop()
-    isPaid: string
+    userId: string
 
     @Prop()
-    orderStatus: string
+    isPaid: boolean
+
+    @Prop()
+    BillingAddress: Address
+
+    @Prop()
+    ShippingAddress: Address
+
+    @Prop()
+    status: string
 
     @Prop()
     trackingId: string

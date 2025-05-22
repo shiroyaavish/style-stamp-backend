@@ -40,8 +40,8 @@ export class ProductsController {
 
   @UseGuards(JwtAdminAuthGuard)
   @Patch('/:id/status')
-  updateStatus(@Req() request: Request, @Param("id") id: string) {
-    return this.productsService.updatedStatus(request, id);
+  updateStatus(@Req() request: Request, @Param("id") id: string,@Param("status")status:string) {
+    return this.productsService.updatedStatus(request, id,status);
   }
 
   @Delete(':id')

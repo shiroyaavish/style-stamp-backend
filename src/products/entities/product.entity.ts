@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose from "mongoose";
+import { StatusEnum } from "src/constant/status";
 
 export type ProductDocument = Product & Document
-
 export class Attriutes {
     @Prop()
     name: string
@@ -102,8 +102,8 @@ export class Product {
     @Prop({ type: String })
     mockupImage: string
 
-    @Prop({ type: Boolean, default: false })
-    isActive: boolean
+    @Prop({ type: String, default: false })
+    status: StatusEnum
 
     @Prop({ type: Number, default: 0 })
     stars: number

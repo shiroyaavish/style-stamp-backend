@@ -4,7 +4,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Category, CategoryDocument } from './entities/category.entity';
 import { Model, Types } from 'mongoose';
-import { statusEnum } from 'src/constant/status';
+import { StatusEnum } from 'src/constant/status';
 import { CategoryResponse } from './interface/interface';
 import { Product, ProductDocument } from 'src/products/entities/product.entity';
 
@@ -16,7 +16,7 @@ export class CategoriesService {
   ) { }
 
   async create(request: Request, createCategoryDto: CreateCategoryDto) {
-    const { name, image, parentCategoryId, isActive } = createCategoryDto;
+    const { name, image, parentCategoryId, status } = createCategoryDto;
 
     const parentCategory = parentCategoryId ? await this.categoryModel.findById(parentCategoryId).lean() : null;
 
@@ -24,7 +24,7 @@ export class CategoriesService {
       name,
       image,
       parentCategoryId,
-      isActive: parentCategoryId ? parentCategory["isActive"] : isActive,
+      status: parentCategoryId ? parentCategory["status"] : status,
       path: []
     });
 
@@ -45,7 +45,7 @@ export class CategoriesService {
   }
 
   async findAll(request: Request) {
-    const categories = await this.categoryModel.find({ parentCategoryId: null, status: statusEnum.Active }).sort({ name: 1 }).select("-parentCategoryId -parentCategoryName -__v -createdAt -updatedAt")
+    const categories = await this.categoryModel.find({ parentCategoryId: null, status: StatusEnum.Active }).sort({ name: 1 }).select("-parentCategoryId -parentCategoryName -__v -createdAt -updatedAt")
     return {
       status: HttpStatus.OK,
       message: 'Categories retrieved successfully',
@@ -54,7 +54,7 @@ export class CategoriesService {
   }
 
   async findOne(request: Request, id: string): Promise<any> {
-    const categories = await this.categoryModel.find({ path: { $in: [id] }, status: statusEnum.Active }).select("_id name parentCategoryId").lean();
+    const categories = await this.categoryModel.find({ path: { $in: [id] }, status: StatusEnum.Active }).select("_id name parentCategoryId").lean();
 
     if (!categories || categories.length === 0) {
       return {
@@ -132,10 +132,10 @@ export class CategoriesService {
     const category = await this.categoryModel.findById(id)
 
     await this.categoryModel.updateMany({ path: { $in: [id] } }, {
-      isActive: category.isActive ? false : true
+      status: category.status == StatusEnum.Active ? StatusEnum.Deactive : StatusEnum.Active
     })
 
-    await this.productModel.updateMany({ "category.id": id, isActive: category.isActive ? false : true })
+    await this.productModel.updateMany({ "category.id": id, status: { $in: [StatusEnum.Active, StatusEnum.Deactive] } }, { status: category.status == StatusEnum.Active ? StatusEnum.Deactive : StatusEnum.Active })
 
     return {
       status: HttpStatus.OK,
@@ -151,7 +151,8 @@ export class CategoriesService {
 
     const categoryIds = categories.map((category) => String(category._id))
 
-    await this.productModel.updateMany({ "category.id": { $in: categoryIds } }, { category: {}, isActive: false })
+    await this.productModel.updateMany({ "category.id": { $in: categoryIds } }, { category: {}, status: StatusEnum.Action })
+    
 
     await this.productModel.updateMany(
       { "subCategories.id": { $in: categoryIds } },
@@ -203,7 +204,7 @@ export class CategoriesService {
           _id: {
             $nin: categoryIds.map(id => new Types.ObjectId(id)),
           },
-          isActive: true
+          status: StatusEnum.Active
         },
       },
       {

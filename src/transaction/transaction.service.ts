@@ -1,17 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { CreateTransactionDto, transactionState } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { PostFinanceCheckout } from 'postfinancecheckout';
+import { InjectModel } from '@nestjs/mongoose';
+import { Order, OrderDocument } from 'src/order/entities/order.entity';
+import { Model, Types } from 'mongoose';
+import { Cart, CartDocumnet } from 'src/carts/entities/cart.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TransactionService {
 
   private transactionService: PostFinanceCheckout.api.TransactionService;
   private config;
-  constructor() {
-    let spaceId: number = 80403;
-    let userId: number = 136579;
-    let apiSecret: string = 'SwHiJvqVmasl1Q01/i/bPWq54deANhejk/d8AbuoLOM=';
+  constructor(
+    private configService: ConfigService,
+    @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
+    @InjectModel(Cart.name) private cartModel: Model<CartDocumnet>
+  ) {
+    let spaceId: number = configService.get<number>("postfinance.spaceId");
+    let userId: number = configService.get<number>("postfinance.userId");
+    let apiSecret: string = configService.get<string>("postfinance.apiSecret");
     const auth = Buffer.from(`${userId}:${apiSecret}`).toString("base64");
 
     this.config = {
@@ -25,26 +34,16 @@ export class TransactionService {
     this.transactionService = new PostFinanceCheckout.api.TransactionService(this.config);
   }
   async create(createTransactionDto: CreateTransactionDto) {
-    // {"entityId":261024279,"eventId":601947196,"listenerEntityId":1472041831364,"listenerEntityTechnicalName":"TransactionCompletion","spaceId":80403,"timestamp":"2025-05-17T08:36:00+0000","webhookListenerId":550330}
 
-
-
-    console.log("🚨 Webhook Event Received:");
-    console.log(JSON.stringify(createTransactionDto, null, 2));
-
-    const entityType = createTransactionDto.listenerEntityTechnicalName;
     const transactionId = createTransactionDto.entityId;
     const spaceId = createTransactionDto.spaceId;
 
-    // Use the API to fetch full transaction details (optional)
-    console.log("📦 Transaction ID:", transactionId);
-    console.log("🌌 Space ID:"
-      , spaceId);
     const transaction = await this.transactionService.read(spaceId, transactionId)
-    console.log(transaction.body.state);
-    // const document = await this.transactionService.getInvoiceDocument(spaceId, transactionId);
-    // console.log(document);
+    const order = await this.orderModel.findOne({ transactionId: transactionId });
+    const isPaid = transaction.body.state === PostFinanceCheckout.model.TransactionState.FULFILL
+    await this.orderModel.findByIdAndUpdate(order._id, { isPaid: isPaid ? true : false, status: isPaid ? "CONFIRMED":"FAILED" })
 
+    await this.cartModel.updateMany({ _id: order.cartItems.map((id) => new Types.ObjectId(id)) }, { orderId: String(order._id), order: order.orderId, isOrder: true })
 
     return createTransactionDto;
   }

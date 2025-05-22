@@ -25,5 +25,10 @@ export default () => ({
     user: process.env.MAIL_USER,
     password: process.env.MAIL_PASSWORD,
     from: process.env.MAIL_FROM,
+  },
+  postfinance:{
+    spaceId:process.env.SPACE_ID,
+    userId:process.env.USER_ID,
+    apiSecret:process.env.API_SECRET
   }
 });

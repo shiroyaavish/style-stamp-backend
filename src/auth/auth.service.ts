@@ -29,7 +29,7 @@ export class AuthService {
   ) { }
 
   async create(createAuthDto: CreateAuthDto) {
-    const { name, mobileNumber, countryCode, countryCodeEmoji, email } =
+    const { name, mobileNumber, phoneCode, countryCodeEmoji, email } =
       createAuthDto;
     if (!mobileNumber || !email) {
       return new HttpException(
@@ -54,7 +54,7 @@ export class AuthService {
     const newUser = new this.userModel({
       name: name,
       mobileNumber: mobileNumber,
-      countryCode: countryCode,
+      phoneCode: phoneCode,
       countryCodeEmoji: countryCodeEmoji,
       email: email,
     });
@@ -67,7 +67,7 @@ export class AuthService {
       data: {
         name,
         mobileNumber,
-        countryCode,
+        phoneCode,
         countryCodeEmoji,
         email,
       },
@@ -78,7 +78,7 @@ export class AuthService {
     const {
       name,
       mobileNumber,
-      countryCode,
+      phoneCode,
       countryCodeEmoji,
       email,
       password,
@@ -108,7 +108,7 @@ export class AuthService {
     const newUser = new this.adminModel({
       name: name,
       mobileNumber: mobileNumber,
-      countryCode: countryCode,
+      phoneCode: phoneCode,
       countryCodeEmoji: countryCodeEmoji,
       email: email,
       password: newPassword,
@@ -122,7 +122,7 @@ export class AuthService {
       data: {
         name,
         mobileNumber,
-        countryCode,
+        phoneCode,
         countryCodeEmoji,
         email,
       },
@@ -130,7 +130,7 @@ export class AuthService {
   }
 
   async sendOTP(sendotpDto: SendotpDto) {
-    const { mobileNumber, countryCode } = sendotpDto;
+    const { mobileNumber, phoneCode } = sendotpDto;
     const user = await this.userModel.findOne({ mobileNumber: mobileNumber });
     if (!user) {
       throw new HttpException(
@@ -142,7 +142,7 @@ export class AuthService {
       );
     }
     if (this.configService.get<string>('environment') == 'production') {
-      const fullMobileNumber = countryCode + mobileNumber;
+      const fullMobileNumber = phoneCode + mobileNumber;
       const response = await this.twilioService.sendTwilioVerificationSMS(fullMobileNumber.toString())
       if (response.status) {
         return {
@@ -190,7 +190,7 @@ export class AuthService {
 
     if (this.configService.get<string>("environment") === "production") {
       try {
-        const mobileNumber = `${user.countryCode}${user.mobileNumber}`
+        const mobileNumber = `${user.phoneCode}${user.mobileNumber}`
         const verificationCheck = await this.twilioService.verifyTwilioSMS(mobileNumber, otp);
 
         if (verificationCheck.status !== 'approved') {
@@ -251,7 +251,7 @@ export class AuthService {
     const loginResponse = {
       userId: user.id,
       mobileNumber: user.mobileNumber,
-      countryCode: user.countryCode,
+      phoneCode: user.phoneCode,
       accessToken: accessToken,
       refreshToken: refreshToken,
     };
@@ -330,7 +330,7 @@ export class AuthService {
         accessToken,
         name: isUser['name'],
         mobileNumber: isUser['mobileNumber'],
-        countryCode: isUser['countryCode'],
+        phoneCode: isUser['phoneCode'],
         countryCodeEmoji: isUser['countryCodeEmoji'],
         email: isUser['email'],
       },

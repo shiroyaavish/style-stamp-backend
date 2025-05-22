@@ -22,6 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('auth.jwtSecret'),
       passReqToCallback: true,
+      
     });
   }
   async validate(req: e.Request, payload: any, done: VerifiedCallback) {
@@ -31,6 +32,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // console.log(authHeader);
 
     const accessToken = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+    if (!accessToken) {
+      return {}
+    }
     const authInfo = await this.authInfoModel.findOne({
       uniqueId: payload['id'],
       accessToken: accessToken,

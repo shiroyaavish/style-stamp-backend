@@ -19,9 +19,9 @@ export class CreateCategoryDto {
     @ApiProperty({ description: "Upper level category id" })
     parentCategoryId?: string
 
-    @IsBoolean()
-    @ApiProperty({ description: "category is active or not" })
-    isActive?: boolean
+    @IsString()
+    @ApiProperty({ description: "category is active or deactive" })
+    status?: string
 }
 
 export class CategoryPaginationDto {
